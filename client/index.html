@@ -3,70 +3,156 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>База фільмів Neo4j</title>
+    <title>Movie</title>
+    <link rel="stylesheet" href="./assets/css/style.css">
 </head>
-<body class="page">
-
-    <header class="header">
-        <h1 class="header__title">База фільмів</h1>
-
-        <form class="search-form search-form--movie" id="search-movie-form">
-            <input type="text" class="search-form__input" id="search-movie-input" placeholder="Знайти фільм за назвою..." required>
-            <button type="submit" class="search-form__button">Шукати</button>
-        </form>
-
-        <form class="search-form search-form--related" id="search-related-form">
-            <input type="text" class="search-form__input" id="search-related-input" placeholder="Назва базового фільму..." required>
-            <select class="search-form__select" id="search-related-select">
-                <option value="ACTED_IN">Спільні актори</option>
-                <option value="DIRECTED">Спільні режисери</option>
-                <option value="WROTE">Спільні сценаристи</option>
-                <option value="PRODUCED">Спільні продюсери</option>
-            </select>
-            <button type="submit" class="search-form__button">Знайти схожі</button>
-        </form>
-
-        <form class="search-form search-form--person" id="search-person-form">
-            <input type="text" class="search-form__input" id="search-person-input" placeholder="Ім'я (напр. Tom Hanks)..." required>
-            <select class="search-form__select" id="search-person-select">
-                <option value="ACTED_IN">Актор</option>
-                <option value="DIRECTED">Режисер</option>
-                <option value="WROTE">Сценарист</option>
-                <option value="PRODUCED">Продюсер</option>
-            </select>
-            <button type="submit" class="search-form__button">Шукати фільми</button>
-        </form>
+<body>
+    <header class="main-header">
+        <div class="logo">Movie</div>
+        <nav class="main-nav">
+            <button class="nav-btn" type="button" data-target="movies-feed-section">Стрічка</button>
+            <button class="nav-btn" type="button" data-target="search-section">Пошук</button>
+            <button class="nav-btn" type="button" data-target="admin-section">Адміністрування</button>
+        </nav>
     </header>
 
-    <main class="main-content">
-        <section class="movies-feed" id="movies-feed-section">
-            <h2 class="movies-feed__title">Усі фільми</h2>
+    <main class="app-container">
 
-            <div class="movies-feed__list" id="movies-feed-list"></div>
-
-            <div class="pagination movies-feed__pagination">
-                <button class="pagination__button" id="prevPageBtn" type="button">Попередня</button>
-                <span class="pagination__info" id="page-info">Сторінка 1</span>
-                <button class="pagination__button" id="nextPageBtn" type="button">Наступна</button>
+        <section id="movies-feed-section" class="view-section">
+            <h2>Останні фільми</h2>
+            <div id="movies-feed-list">
+            </div>
+            <div class="pagination">
+                <button id="prevPageBtn" type="button" disabled>Попередня</button>
+                <span id="page-info">Сторінка 1</span>
+                <button id="nextPageBtn" type="button">Наступна</button>
             </div>
         </section>
 
-        <section class="movie-details" id="movie-details-section" hidden></section>
+        <section id="search-section" class="view-section" hidden>
+            <h2>Пошук та Аналітика</h2>
 
-        <section class="movie-results movie-results--related" id="related-movies-section" hidden>
-            <h2 class="movie-results__title">Схожі фільми</h2>
-            <div class="movie-results__list" id="related-movies-list">
+            <div class="search-panels grid-container">
+                <div class="search-card">
+                    <h3>Знайти фільм</h3>
+                    <form id="search-movie-form">
+                        <input type="text" id="search-movie-input" placeholder="Назва фільму (напр. The Matrix)" required>
+                        <button type="submit">Шукати</button>
+                    </form>
+                </div>
+
+                <div class="search-card">
+                    <h3>Схожі фільми</h3>
+                    <form id="search-related-form">
+                        <input type="text" id="search-related-input" placeholder="Назва фільму" required>
+                        <select id="search-related-select">
+                            <option value="ACTED_IN">Спільні актори</option>
+                            <option value="DIRECTED">Спільний режисер</option>
+                        </select>
+                        <button type="submit">Знайти</button>
+                    </form>
+                </div>
+
+                <div class="search-card">
+                    <h3>Фільмографія персони</h3>
+                    <form id="search-person-form">
+                        <input type="text" id="search-person-input" placeholder="Ім'я (напр. Keanu Reeves)" required>
+                        <select id="search-person-select">
+                            <option value="ACTED_IN">Актор</option>
+                            <option value="DIRECTED">Режисер</option>
+                            <option value="PRODUCES">Продюсер</option>
+                            <option value="WROTE">Сценарист</option>
+                        </select>
+                        <button type="submit">Знайти</button>
+                    </form>
+                </div>
             </div>
         </section>
 
-        <section class="movie-results movie-results--person" id="person-movies-section" hidden>
-            <h2 class="movie-results__title">Фільми персони</h2>
-            <div class="movie-results__list" id="person-movies-list">
+        <section id="movie-details-section" class="view-section results-view" hidden>
+        </section>
+
+        <section id="related-movies-section" class="view-section results-view" hidden>
+            <h2>Схожі фільми</h2>
+            <div id="related-movies-list"></div>
+        </section>
+
+        <section id="person-movies-section" class="view-section results-view" hidden>
+            <h2>Фільмографія</h2>
+            <div id="person-movies-list"></div>
+        </section>
+
+        <section id="admin-section" class="view-section" hidden>
+            <h2>Додавання даних до БД</h2>
+
+            <div class="admin-panels grid-container">
+                <div class="admin-card">
+                    <h3>Новий фільм</h3>
+                    <form id="add-movie-form">
+                        <div class="form-group">
+                            <label for="movie-title">Назва (обов'язково)</label>
+                            <input type="text" id="movie-title" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="movie-released">Рік випуску</label>
+                            <input type="number" id="movie-released">
+                        </div>
+                        <div class="form-group">
+                            <label for="movie-tagline">Слоган</label>
+                            <input type="text" id="movie-tagline">
+                        </div>
+                        <button type="submit">Додати фільм</button>
+                    </form>
+                </div>
+
+                <div class="admin-card">
+                    <h3>Нова персона</h3>
+                    <form id="add-person-form">
+                        <div class="form-group">
+                            <label for="person-name">Ім'я (обов'язково)</label>
+                            <input type="text" id="person-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="person-born">Рік народження</label>
+                            <input type="number" id="person-born">
+                        </div>
+                        <button type="submit">Додати персону</button>
+                    </form>
+                </div>
+
+                <div class="admin-card">
+                    <h3>Зв'язати персону з фільмом</h3>
+                    <form id="add-link-form">
+                        <div class="form-group">
+                            <label for="link-person">Ім'я персони (точне)</label>
+                            <input type="text" id="link-person" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="link-movie">Назва фільму (точна)</label>
+                            <input type="text" id="link-movie" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="link-type">Тип зв'язку</label>
+                            <select id="link-type" required>
+                                <option value="ACTED_IN">Зіграв(ла) у (ACTED_IN)</option>
+                                <option value="DIRECTED">Режисер (DIRECTED)</option>
+                                <option value="PRODUCES">Продюсер (PRODUCES)</option>
+                                <option value="WROTE">Сценарист (WROTE)</option>
+                                <option value="REVIEWED">Критик (REVIEWED)</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="roles-group">
+                            <label for="link-roles">Ролі (через кому, лише для акторів)</label>
+                            <input type="text" id="link-roles" placeholder="Neo, Thomas Anderson">
+                        </div>
+                        <button type="submit">Створити зв'язок</button>
+                    </form>
+                </div>
             </div>
         </section>
 
     </main>
 
-    <script src="./assets/js/index.js"></script>
+    <script type="module" src="./assets/js/main.js"></script>
 </body>
 </html>
