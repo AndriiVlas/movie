@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>База фільмів Neo4j</title>
+</head>
+<body class="page">
+
+    <header class="header">
+        <h1 class="header__title">База фільмів</h1>
+
+        <form class="search-form search-form--movie" id="search-movie-form">
+            <input type="text" class="search-form__input" id="search-movie-input" placeholder="Знайти фільм за назвою..." required>
+            <button type="submit" class="search-form__button">Шукати</button>
+        </form>
+
+        <form class="search-form search-form--related" id="search-related-form">
+            <input type="text" class="search-form__input" id="search-related-input" placeholder="Назва базового фільму..." required>
+            <select class="search-form__select" id="search-related-select">
+                <option value="ACTED_IN">Спільні актори</option>
+                <option value="DIRECTED">Спільні режисери</option>
+                <option value="WROTE">Спільні сценаристи</option>
+                <option value="PRODUCED">Спільні продюсери</option>
+            </select>
+            <button type="submit" class="search-form__button">Знайти схожі</button>
+        </form>
+
+        <form class="search-form search-form--person" id="search-person-form">
+            <input type="text" class="search-form__input" id="search-person-input" placeholder="Ім'я (напр. Tom Hanks)..." required>
+            <select class="search-form__select" id="search-person-select">
+                <option value="ACTED_IN">Актор</option>
+                <option value="DIRECTED">Режисер</option>
+                <option value="WROTE">Сценарист</option>
+                <option value="PRODUCED">Продюсер</option>
+            </select>
+            <button type="submit" class="search-form__button">Шукати фільми</button>
+        </form>
+    </header>
+
+    <main class="main-content">
+        <section class="movies-feed" id="movies-feed-section">
+            <h2 class="movies-feed__title">Усі фільми</h2>
+
+            <div class="movies-feed__list" id="movies-feed-list"></div>
+
+            <div class="pagination movies-feed__pagination">
+                <button class="pagination__button" id="prevPageBtn" type="button">Попередня</button>
+                <span class="pagination__info" id="page-info">Сторінка 1</span>
+                <button class="pagination__button" id="nextPageBtn" type="button">Наступна</button>
+            </div>
+        </section>
+
+        <section class="movie-details" id="movie-details-section" hidden></section>
+
+        <section class="movie-results movie-results--related" id="related-movies-section" hidden>
+            <h2 class="movie-results__title">Схожі фільми</h2>
+            <div class="movie-results__list" id="related-movies-list">
+            </div>
+        </section>
+
+        <section class="movie-results movie-results--person" id="person-movies-section" hidden>
+            <h2 class="movie-results__title">Фільми персони</h2>
+            <div class="movie-results__list" id="person-movies-list">
+            </div>
+        </section>
+
+    </main>
+
+    <script src="./assets/js/index.js"></script>
+</body>
+</html>
