@@ -1,7 +1,6 @@
 import neo4j from 'neo4j-driver';
 
 
-
 const URI = process.env.NEO4J_URI;
 const USER = process.env.NEO4J_USER;
 const PASSWORD = process.env.NEO4J_PASSWORD;
@@ -19,7 +18,6 @@ async function verifyConnection() {
         await session.close();
     }
 }
-
 
 
 export default {

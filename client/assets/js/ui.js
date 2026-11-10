@@ -77,6 +77,9 @@ export const UI = {
 
     showError(container, message) {
         if (!container) return;
-        container.innerHTML = `<div class="error-message"><p>${message}</p></div>`;
+        container.innerHTML = `
+            <div class="error-message"><p>${message}</p></div>
+            <button class="movie-back-btn js-back-btn">Повернутися до пошуку</button>
+        `;
     }
 };

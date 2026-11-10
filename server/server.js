@@ -7,6 +7,7 @@ import { fileURLToPath } from 'url';
 
 import db from './config/db.js';
 import redis from './config/redis.js';
+import logger from './config/logger.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -16,6 +17,7 @@ const PORT = 3000;
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../client')));
 app.use(rateLimiter);
+app.use(logInputRequest);
 
 
 
@@ -408,6 +410,17 @@ async function rateLimiter(req, res, next) {
 
     next();
 }
+
+// Логер всіх вхідних запитів
+function logInputRequest(req, res, next) {
+    logger.info('${req.method} ${req.url}', {
+        method: req.method,
+        url: req.url
+    });
+    next();
+}
+
+
 
 // Запуск сервера
 async function startServer() {
