@@ -2,22 +2,23 @@ import 'dotenv/config';
 
 import path from 'path';
 import express from 'express';
-import crypto from 'crypto';
 import { fileURLToPath } from 'url';
 
 import db from './config/db.js';
-import redis from './config/redis.js';
-import logger from './config/logger.js';
+import limitService from './services/limitService.js';
+import logService from './services/logService.js';
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = 3000;
 
+
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../client')));
-app.use(rateLimiter);
-app.use(logInputRequest);
+app.use(limitService.rateLimiter);
+app.use(logService.request);
 
 
 
@@ -376,57 +377,11 @@ app.post("/api/link", async (req, res) => {
 
 
 
-// Обмежувач кількості запитів
-async function checkRateLimit(userIp, endpoint = 'global', limit = 5, windowTime = 60) {
-    const r = redis.getRedis();
-    if (!r) return true;
-
-    const key = `requests_timestamps:${endpoint}:${userIp}`;
-    const currentTime = Date.now();
-
-    try {
-        await r.zRemRangeByScore(key, 0, currentTime - windowTime * 1000);
-        await r.zAdd(key, { score: currentTime, value: `${crypto.randomUUID()}` });
-        await r.expire(key, windowTime);
-
-        if (await r.zCard(key) > limit) {
-            return false;
-        }
-        return true;
-    } catch (error) {
-        console.error('Помилка перевірки ліміту Redis:', error);
-        return true;
-    }
-}
-
-// Проміжна функція для обмежувача кількості запитів
-async function rateLimiter(req, res, next) {
-    const userIp = req.headers["x-forwarded-for"] || req.socket.remoteAddress || "anonymous";
-    const endpoint = req.path;
-
-    if (!(await checkRateLimit(userIp, endpoint))) {
-        return res.status(429).json({ message: 'Надіслано надто багато запитів до цього ресурсу' })
-    }
-
-    next();
-}
-
-// Логер всіх вхідних запитів
-function logInputRequest(req, res, next) {
-    logger.info('${req.method} ${req.url}', {
-        method: req.method,
-        url: req.url
-    });
-    next();
-}
-
-
-
 // Запуск сервера
 async function startServer() {
     try {
         await db.verifyConnection();
-        await redis.connectRedis();
+        await limitService.redis.connectRedis();
 
         app.listen(PORT, () => {
             console.log(`Сервер працює на порту ${PORT}`);
