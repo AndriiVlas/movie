@@ -4,18 +4,20 @@ import crypto from 'crypto';
 
 
 // Обмежувач кількості запитів
-async function checkRateLimit(redis, userIp, endpoint = 'global', limit = 5, windowTime = 60) {
-    if (!redis) return true;
+async function checkRateLimit(userIp, endpoint = 'global', limit = 5, windowTime = 60) {
+    const r = redis.getRedis();
+    
+    if (!r) return true;
 
     const key = `requests_timestamps:${endpoint}:${userIp}`;
     const currentTime = Date.now();
 
     try {
-        await redis.zRemRangeByScore(key, 0, currentTime - windowTime * 1000);
-        await redis.zAdd(key, { score: currentTime, value: `${crypto.randomUUID()}` });
-        await redis.expire(key, windowTime);
+        await r.zRemRangeByScore(key, 0, currentTime - windowTime * 1000);
+        await r.zAdd(key, { score: currentTime, value: `${crypto.randomUUID()}` });
+        await r.expire(key, windowTime);
 
-        if (await redis.zCard(key) > limit) {
+        if (await r.zCard(key) > limit) {
             return false;
         }
         return true;
@@ -26,11 +28,11 @@ async function checkRateLimit(redis, userIp, endpoint = 'global', limit = 5, win
 }
 
 // Проміжна функція для обмежувача кількості запитів
-async function rateLimiter(redis,req, res, next) {
+async function rateLimiter(req, res, next) {
     const userIp = req.headers["x-forwarded-for"] || req.socket.remoteAddress || "anonymous";
     const endpoint = req.path;
 
-    if (!(await checkRateLimit(redis, userIp, endpoint))) {
+    if (!(await checkRateLimit(userIp, endpoint))) {
         return res.status(429).json({ message: 'Надіслано надто багато запитів до цього ресурсу' })
     }
 

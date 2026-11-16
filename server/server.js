@@ -7,6 +7,7 @@ import { fileURLToPath } from 'url';
 import db from './config/db.js';
 import limitService from './services/limitService.js';
 import logService from './services/logService.js';
+import { loadEnvFile } from 'process';
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -23,7 +24,7 @@ app.use(logService.request);
 
 
 // Стрічка фільмів
-app.get("/api/movie", async (req, res) => {
+app.get("/api/movie", async (req, res, next) => {
     let session;
 
     const page = parseInt(req.query.page) || 1;
@@ -64,15 +65,14 @@ app.get("/api/movie", async (req, res) => {
 
         res.status(200).json(movies);
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Помилка сервера' })
+        next(error);
     } finally {
         if (session) await session.close();
     }
 });
 
 // Пошук фільму за назвою з отриманням інформації про режесерів, акторів, сценаристів тощо
-app.get("/api/movie/:title", async (req, res) => {
+app.get("/api/movie/:title", async (req, res, next) => {
     let session;
 
     const { title } = req.params;
@@ -124,15 +124,14 @@ app.get("/api/movie/:title", async (req, res) => {
             writers
         });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Помилка сервера' })
+        next(error);
     } finally {
         if (session) await session.close();
     }
 });
 
 // Пошук фільмів за тими самими акторами/режисерами/продюсерами тощо
-app.get("/api/movie/:rel/:name", async (req, res) => {
+app.get("/api/movie/:rel/:name", async (req, res, next) => {
     let session;
 
     const { name } = req.params;
@@ -169,15 +168,14 @@ app.get("/api/movie/:rel/:name", async (req, res) => {
 
         res.status(200).json(movies);
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Помилка сервера' })
+        next(error);
     } finally {
         if (session) await session.close();
     }
 });
 
 // Пошук фільмів за фільмом з тими самими акторами/режисерами/продюсерами тощо
-app.get("/api/movie/related/:title/:rel", async (req, res) => {
+app.get("/api/movie/related/:title/:rel", async (req, res, next) => {
     let session;
 
     const { title } = req.params;
@@ -224,8 +222,7 @@ app.get("/api/movie/related/:title/:rel", async (req, res) => {
             related: relatedMovies
         });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Помилка сервера' });
+        next(error);
     } finally {
         if (session) await session.close();
     }
@@ -233,7 +230,7 @@ app.get("/api/movie/related/:title/:rel", async (req, res) => {
 
 
 // Додавання нового фільму
-app.post("/api/movie", async (req, res) => {
+app.post("/api/movie", async (req, res, next) => {
     let session;
     const { title, released, tagline } = req.body;
 
@@ -268,15 +265,14 @@ app.post("/api/movie", async (req, res) => {
 
         res.status(200).json(createdMovie);
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Помилка сервера' });
+        next(error);
     } finally {
         if (session) await session.close();
     }
 });
 
 // Додавання нової людини 
-app.post("/api/person", async (req, res) => {
+app.post("/api/person", async (req, res, next) => {
     let session;
     const { name, born } = req.body;
 
@@ -310,15 +306,14 @@ app.post("/api/person", async (req, res) => {
         
         res.status(200).json(createdPerson);
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: "Помилка сервера" });
+        next(error);
     } finally {
         if (session) await session.close();
     }
 });
 
 // Додавання зв'язку людини з фільмом
-app.post("/api/link", async (req, res) => {
+app.post("/api/link", async (req, res, next) => {
     let session;
     const { name, title, type, roles } = req.body;
     const allowedTypes = ['ACTED_IN', 'DIRECTED', 'PRODUCES', 'REVIEWED', 'WROTE'];
@@ -368,11 +363,21 @@ app.post("/api/link", async (req, res) => {
 
         res.status(200).json(createdRel);
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: "Помилка сервера" });
+        next(error);
     } finally {
         if (session) await session.close();
     }
+});
+
+
+
+// Випадок невдалої обробки запиту
+app.use((err, req, res, next) => {
+    console.log(err.message);
+    if (err.name === 'Neo4jError' || err.code?.startsWith('Neo.')) {
+        logService.dbConnect('Neo4j', err);
+    }
+    res.status(500).json({ error: 'Внутрішня помилка сервера' });
 });
 
 
@@ -383,11 +388,19 @@ async function startServer() {
         await db.verifyConnection();
         await limitService.redis.connectRedis();
 
-        app.listen(PORT, () => {
+        const server = app.listen(PORT);
+
+        server.on('error', (error) => {
+            logService.serverListen(PORT, error);
+            console.log(`Помилка прослуховування порту ${PORT}`);
+        });
+
+        server.on('listening', () => {
+            logService.serverListen(PORT);
             console.log(`Сервер працює на порту ${PORT}`);
-        })
+        });
     } catch (error) {
-        console.error('Не вадлося запустити сервер:', error.message);
+        console.error('Не вадлося запустити сервер, помилка ініціалізації:', error.message);
     }
 }
 

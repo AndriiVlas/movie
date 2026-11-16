@@ -1,5 +1,6 @@
 import winston from 'winston';
 import { ElasticsearchTransport } from 'winston-elasticsearch';
+import logService from '../services/logService.js';
 
 
 const URL = process.env.ELASTICSEARCH_URL;
@@ -58,6 +59,7 @@ logger.on('error', (error) => {
 esTransport.client.ping()
     .then(() => {
         console.log('Elasticsearch виконує логування');
+        logService.serviceConnect('Elasticsearch');
     })
     .catch((error) => {
         console.error('Elasticsearch НЕ виконує логування:', error.message);

@@ -68,7 +68,8 @@ export const UI = {
             `;
         }
 
-        if (showBackButton) {
+        // Краще переробити
+        if (showBackButton && container.id != 'movies-feed-list') {
             html += `<button class="movie-back-btn js-back-btn">Повернутися до пошуку</button>`;
         }
 
@@ -77,9 +78,17 @@ export const UI = {
 
     showError(container, message) {
         if (!container) return;
-        container.innerHTML = `
-            <div class="error-message"><p>${message}</p></div>
-            <button class="movie-back-btn js-back-btn">Повернутися до пошуку</button>
-        `;
+        
+        // Краще переробити
+        if (container.id == 'movies-feed-list') {
+            container.innerHTML = `
+                <div class="error-message"><p>${message}</p></div>
+            `;
+        } else {
+            container.innerHTML = `
+                <div class="error-message"><p>${message}</p></div>
+                <button class="movie-back-btn js-back-btn">Повернутися до пошуку</button>
+            `;
+        }
     }
 };

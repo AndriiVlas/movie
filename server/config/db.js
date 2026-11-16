@@ -1,4 +1,5 @@
 import neo4j from 'neo4j-driver';
+import logService from '../services/logService.js';
 
 
 const URI = process.env.NEO4J_URI;
@@ -10,10 +11,12 @@ const driver = neo4j.driver(URI, neo4j.auth.basic(USER, PASSWORD));
 async function verifyConnection() {
     const session = driver.session();
     try {
-        const result = await session.run('RETURN "Neo4j відповідає на запити" AS msg');
-        console.log(result.records[0].get('msg'));
+        await driver.verifyConnectivity();
+        logService.dbConnect('Neo4J');
+        console.log('Neo4j відповідає на запити');
     } catch (error) {
         console.error('Neo4j НЕ відповідає на запити:', error.message);
+        logService.dbConnect('Neo4J', error);
     } finally {
         await session.close();
     }

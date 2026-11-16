@@ -1,13 +1,48 @@
 import logger from '../config/logger.js';
 
 
-const accessLogger = logger.child({ logger_name: 'logger-access' });
-const eventsLogger = logger.child({ logger_name: 'logger-events' });
-const dbLogger = logger.child({ logger_name: 'logger-database' });
-const systemLogger = logger.child({ logger_name: 'logger-system' });
+const systemLogger = logger.child({ logger_name: 'logger-system' }); // Логування системних подій
+const accessLogger = logger.child({ logger_name: 'logger-access' }); // Логування звернень до ендпоїнтів
+const eventsLogger = logger.child({ logger_name: 'logger-events' }); // Логування бізнес-подій
 
 
 const logService = {
+    /* systemLogger */
+    // Логування під'єднання до БД або її падіння
+    dbConnect(db, err = null) {
+        if (err) {
+            systemLogger.error(`Connect to ${db} – ERROR`, {
+                error_stack: err.stack || err.message
+            });
+            return;
+        }
+        systemLogger.info(`Connect to ${db} – SUCCESS`);
+    },
+
+    // Логування під'єднання до сервісів або їх падіння
+    serviceConnect(service, err = null) {
+        if (err) {
+            systemLogger.warn(`Connect to ${service} – ERROR`, {
+                error_stack: err.stack || err.message
+            });
+            return;
+        }
+        systemLogger.info(`Connect to ${service} – SUCCESS`);
+    },
+
+    // Логування прослуховування порту
+    serverListen(port, err = null) {
+        if (err) {
+            systemLogger.error(`Start the server on port ${port} — ERROR`, {
+                error_stack: err.stack || err.message
+            });
+            return;
+        }
+        systemLogger.info(`Start the server on port ${port} — SUCCESS`)
+    },
+
+
+    /* accessLogger */
     // Логування запитів
     request(req, res, next) {
         const start = process.hrtime.bigint();
@@ -25,16 +60,9 @@ const logService = {
         next();
     },
 
-    // Логування під'єднання до БД
-    dbConnect(db, err) {
-        if (err) {
-            systemLogger.error(`Connect to ${db} – ERROR`, {
-                error_stack: err.stack || err.message
-            });
-            return;
-        }
-        systemLogger.info(`Connect to ${db} – SUCCESS`);
-    }
+
+    /* eventsLogger */
+    
 }
 
 
