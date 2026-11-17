@@ -6,16 +6,17 @@ const client = createClient({
     url: process.env.REDIS_URL,
     socket: {
         reconnectStrategy: (retries) => {
-            if (retries > 3) {
+            if (retries >= 2) {
                 return new Error('Перевищено ліміт спроб підключення до Redis');
             }
+            return 1000;
         }
     }
 });
 
 client.on('error', (error) => {
     logService.serviceConnect('Redis', error);
-    console.error('Помилка клієнта Redis:', error.message);
+    console.error('Помилка клієнта Redis:', error.message || error.code || error);
 });
 
 async function connectRedis() {
@@ -24,7 +25,6 @@ async function connectRedis() {
         logService.serviceConnect('Redis');
         console.log('Redis успішно підключено');
     } catch (error) {
-        logService.serviceConnect('Redis', error);
         console.error('Redis НЕ вдалося підключити. Робота продовжуються без кешу:', error.message);
     }
 }

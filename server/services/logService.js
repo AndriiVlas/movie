@@ -3,7 +3,6 @@ import logger from '../config/logger.js';
 
 const systemLogger = logger.child({ logger_name: 'logger-system' }); // Логування системних подій
 const accessLogger = logger.child({ logger_name: 'logger-access' }); // Логування звернень до ендпоїнтів
-const eventsLogger = logger.child({ logger_name: 'logger-events' }); // Логування бізнес-подій
 
 
 const logService = {
@@ -58,11 +57,7 @@ const logService = {
             });
         })
         next();
-    },
-
-
-    /* eventsLogger */
-    
+    }
 }
 
 
